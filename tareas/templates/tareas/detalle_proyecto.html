@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ proyecto.nombre }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'lista_proyectos' %}">Gestor de Tareas</a>
+            <!-- Añadimos esto para poder navegar -->
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link active" href="{% url 'lista_proyectos' %}">Proyectos</a>
+                <a class="nav-link" href="{% url 'gestionar_equipos' %}">Equipos e Integrantes</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Cabecera del Proyecto -->
+        <div class="card mb-4 border-primary">
+            <div class="card-body">
+                <h2 class="card-title text-primary">{{ proyecto.nombre }}</h2>
+                <h6 class="text-muted">Iniciado el: {{ proyecto.fecha_creacion|date:"d/m/Y" }}</h6>
+                <p class="card-text mt-3">{{ proyecto.descripcion }}</p>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Columna Izquierda: Formulario para nueva tarea -->
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Añadir Nueva Tarea</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Título de la Tarea</label>
+                                {{ form.titulo }}
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Estado</label>
+                                {{ form.estado }}
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Delegar a (Líder)</label>
+                                {{ form.lider_responsable }}
+                                <small class="text-muted">Selecciona un integrante registrado.</small>
+                            </div>
+                            <button type="submit" class="btn btn-success w-100">Agregar Tarea</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Columna Derecha: Lista de tareas -->
+            <div class="col-md-8">
+                <h4 class="mb-3">Tareas del Proyecto</h4>
+                <div class="table-responsive bg-white rounded shadow-sm">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Tarea</th>
+                                <th>Estado</th>
+                                <th>Responsable</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tarea in tareas %}
+                            <tr>
+                                <td>{{ tarea.titulo }}</td>
+                                <td>
+                                    <span class="badge 
+                                        {% if tarea.estado == 'Completada' %}bg-success
+                                        {% elif tarea.estado == 'En Progreso' %}bg-warning text-dark
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ tarea.estado }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if tarea.lider_responsable %}
+                                        {{ tarea.lider_responsable.nombre }}
+                                        <br><small class="text-muted">({{ tarea.lider_responsable.grupo.nombre }})</small>
+                                    {% else %}
+                                        <span class="text-muted">Sin asignar</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'editar_tarea' tarea.id %}" class="btn btn-sm btn-outline-primary">Editar</a>
+                                        <a href="{% url 'eliminar_tarea' tarea.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Estás seguro de que deseas eliminar esta tarea permanentemente?');">Eliminar</a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-4">No hay tareas asignadas en este proyecto todavía.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
